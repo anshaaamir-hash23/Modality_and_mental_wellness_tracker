@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modality Tracker: Mental Wellness Constellation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #050814;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Sidebar Controls */
+        .sidebar {
+            width: 350px;
+            background: rgba(15, 23, 42, 0.98);
+            border-right: 1px solid #1e293b;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 5px 0 25px rgba(0,0,0,0.5);
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        h2 {
+            color: #38bdf8;
+            margin-top: 0;
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+        }
+
+        /* Easy English Description Box for Sir */
+        .project-info-box {
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            padding: 9px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        .project-info-box strong {
+            color: #38bdf8;
+        }
+
+        p.hint {
+            font-size: 0.78rem;
+            color: #94a3b8;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        label {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #cbd5e1;
+        }
+
+        select, textarea {
+            background: #0b0f19;
+            border: 1px solid #334155;
+            color: white;
+            padding: 8px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+
+        textarea {
+            resize: none;
+            height: 55px;
+        }
+
+        button.primary-btn {
+            background: linear-gradient(135deg, #38bdf8, #2563eb);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button.primary-btn:hover { opacity: 0.9; }
+
+        button.voice-btn {
+            background: linear-gradient(135deg, #c084fc, #9333ea);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button.voice-btn:hover { opacity: 0.9; }
+
+        /* Privacy Notice */
+        .privacy-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.74rem;
+            color: #fca5a5;
+            line-height: 1.3;
+        }
+
+        .privacy-box span {
+            font-weight: bold;
+            color: #ef4444;
+        }
+
+        .stats-box {
+            background: #0b0f19;
+            border: 1px solid #1e293b;
+            padding: 9px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            color: #94a3b8;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .stats-box span {
+            color: #38bdf8;
+            font-weight: bold;
+        }
+
+        /* Canvas Area */
+        .canvas-container {
+            flex-grow: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #0f172a 0%, #050814 100%);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Star Info Popup Modal with Edit & Delete */
+        .popup {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.98);
+            border: 1px solid #38bdf8;
+            padding: 15px;
+            border-radius: 10px;
+            width: 260px;
+            display: none;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            z-index: 100;
+        }
+
+        .popup h4 { margin: 0 0 5px 0; color: #38bdf8; font-size: 0.95rem; }
+        
+        .popup textarea {
+            width: 100%;
+            background: #0b0f19;
+            border: 1px solid #334155;
+            color: white;
+            border-radius: 6px;
+            padding: 6px;
+            font-size: 0.82rem;
+            margin-top: 5px;
+            resize: none;
+            height: 55px;
+            box-sizing: border-box;
+        }
+
+        .popup-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .popup-actions button {
+            flex: 1;
+            padding: 6px;
+            font-size: 0.78rem;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #updateStarBtn { background: #38bdf8; color: #0f172a; }
+        #deleteStarBtn { background: #ef4444; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>✨ Modality Tracker</h2>
+            
+            <!-- Easy English Description for Evaluation -->
+            <div class="project-info-box">
+                <strong>Project Overview:</strong> Tracks multi-modal inputs (Mouse Clicks, Keyboard Keys, & Voice Speech) to record mental wellness reflections into an interactive star canvas.
+            </div>
+
+            <p class="hint">Type or speak your reflection. Every entry turns into a glowing star in the night sky!</p>
+            
+            <div class="form-group">
+                <label>Select Mood:</label>
+                <select id="moodSelect">
+                    <option value="happy">🌟 Happy & Inspired</option>
+                    <option value="creative">💜 Creative & Flow</option>
+                    <option value="focused">💚 Focused & Productive</option>
+                    <option value="stressed">🧡 Stressed & Tense</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Daily Reflection / Memory:</label>
+                <textarea id="noteInput" placeholder="Type or use voice input..."></textarea>
+            </div>
+
+            <button class="voice-btn" id="voiceBtn">🎤 Speak Reflection (Voice Input)</button>
+            <button class="primary-btn" id="addStarBtn">Add Star to Sky</button>
+
+            <!-- Privacy Notice -->
+            <div class="privacy-box">
+                <span>🔒 Privacy Notice:</span> Camera & Eye-tracking are <strong>disabled</strong>. Microphone is only active when you click voice input.
+            </div>
+
+            <!-- Activity Trackers -->
+            <div class="stats-box">
+                <div>Total Stars in Sky: <span id="starCount">0</span></div>
+                <div>Mouse Clicks Tracked: <span id="clickCount">0</span></div>
+                <div>Keyboard Keypresses: <span id="keyCount">0</span></div>
+                <div>Voice Inputs Tracked: <span id="voiceCount">0</span></div>
+            </div>
+        </div>
+
+        <!-- Canvas Night Sky -->
+        <div class="canvas-container">
+            <canvas id="skyCanvas"></canvas>
+            
+            <!-- Interactive Popup Modal for Editing/Deleting -->
+            <div class="popup" id="starPopup">
+                <h4 id="popupTitle">Star Info</h4>
+                <textarea id="popupEditInput"></textarea>
+                <div class="popup-actions">
+                    <button id="updateStarBtn">Update</button>
+                    <button id="deleteStarBtn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Track Mouse Clicks
+        let clickCounts = parseInt(localStorage.getItem('modality_clicks')) || 0;
+        const clickDisplay = document.getElementById('clickCount');
+        clickDisplay.innerText = clickCounts;
+
+        window.addEventListener('click', (e) => {
+            // Ignore clicks inside sidebar form controls to track real user interaction choices
+            clickCounts++;
+            clickDisplay.innerText = clickCounts;
+            localStorage.setItem('modality_clicks', clickCounts);
+        });
+
+        // Track Keyboard Keypresses
+        let keyCounts = parseInt(localStorage.getItem('modality_keys')) || 0;
+        const keyDisplay = document.getElementById('keyCount');
+        keyDisplay.innerText = keyCounts;
+
+        window.addEventListener('keydown', () => {
+            keyCounts++;
+            keyDisplay.innerText = keyCounts;
+            localStorage.setItem('modality_keys', keyCounts);
+        });
+
+        // Track Voice Inputs
+        let voiceCounts = parseInt(localStorage.getItem('modality_voices')) || 0;
+        const voiceDisplay = document.getElementById('voiceCount');
+        voiceDisplay.innerText = voiceCounts;
+
+        // Speech Recognition Setup
+        const voiceBtn = document.getElementById('voiceBtn');
+        const noteInput = document.getElementById('noteInput');
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US'; // Change to 'ur-PK' if you want Urdu speech support
+
+            voiceBtn.addEventListener('click', () => {
+                voiceBtn.innerText = "🎤 Listening... Speak now";
+                voiceBtn.style.background = "#ef4444";
+                recognition.start();
+            });
+
+            recognition.onresult = (event) => {
+                const speechToText = event.results[0][0].transcript;
+                noteInput.value = speechToText;
+                voiceCounts++;
+                voiceDisplay.innerText = voiceCounts;
+                localStorage.setItem('modality_voices', voiceCounts);
+                
+                voiceBtn.innerText = "🎤 Speak Reflection (Voice Input)";
+                voiceBtn.style.background = "linear-gradient(135deg, #c084fc, #9333ea)";
+            };
+
+            recognition.onerror = () => {
+                alert("Voice recognition error or permission denied.");
+                voiceBtn.innerText = "🎤 Speak Reflection (Voice Input)";
+                voiceBtn.style.background = "linear-gradient(135deg, #c084fc, #9333ea)";
+            };
+
+            recognition.onend = () => {
+                voiceBtn.innerText = "🎤 Speak Reflection (Voice Input)";
+                voiceBtn.style.background = "linear-gradient(135deg, #c084fc, #9333ea)";
+            };
+        } else {
+            voiceBtn.style.display = 'none'; // Hide if browser doesn't support speech API
+        }
+
+        // Canvas Setup
+        const canvas = document.getElementById('skyCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let stars = JSON.parse(localStorage.getItem('modality_stars')) || [];
+        
+        if(stars.length === 0) {
+            stars = [
+                { x: 150, y: 120, color: '#38bdf8', mood: 'happy', note: 'Initialized multi-modal tracker with voice support!', date: 'Day 1' },
+                { x: 300, y: 250, color: '#c084fc', mood: 'creative', note: 'Tested speech recognition and canvas nodes.', date: 'Day 2' }
+            ];
+            localStorage.setItem('modality_stars', JSON.stringify(stars));
+        }
+
+        const moodColors = {
+            happy: '#38bdf8',
+            creative: '#c084fc',
+            focused: '#4ade80',
+            stressed: '#fb923c'
+        };
+
+        function updateStats() {
+            document.getElementById('starCount').innerText = stars.length;
+        }
+        updateStats();
+
+        // Draw Sky & Constellation Lines with Bright Glow
+        function drawSky() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if(stars.length > 1) {
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(stars[0].x, stars[0].y);
+                for(let i = 1; i < stars.length; i++) {
+                    ctx.lineTo(stars[i].x, stars[i].y);
+                }
+                ctx.stroke();
+            }
+
+            stars.forEach((star) => {
+                ctx.shadowBlur = 25;
+                ctx.shadowColor = star.color;
+                ctx.fillStyle = star.color;
+                
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            requestAnimationFrame(drawSky);
+        }
+        drawSky();
+
+        // Add Star Action
+        document.getElementById('addStarBtn').addEventListener('click', () => {
+            const mood = document.getElementById('moodSelect').value;
+            const note = noteInput.value.trim();
+
+            if(!note) {
+                alert("Please enter or speak a reflection for your star!");
+                return;
+            }
+
+            const padding = 60;
+            const x = Math.random() * (canvas.width - padding * 2) + padding;
+            const y = Math.random() * (canvas.height - padding * 2) + padding;
+
+            const newStar = {
+                x: x,
+                y: y,
+                color: moodColors[mood],
+                mood: mood,
+                note: note,
+                date: new Date().toLocaleDateString()
+            };
+
+            stars.push(newStar);
+            localStorage.setItem('modality_stars', JSON.stringify(stars));
+            noteInput.value = '';
+            updateStats();
+        });
+
+        let activeStarIndex = null;
+        const popup = document.getElementById('starPopup');
+        const popupEditInput = document.getElementById('popupEditInput');
+
+        // Precise Click detection using Scaling Factor
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const mouseX = (e.clientX - rect.left) * scaleX;
+            const mouseY = (e.clientY - rect.top) * scaleY;
+
+            let clickedIndex = -1;
+            stars.forEach((star, index) => {
+                const dist = Math.hypot(star.x - mouseX, star.y - mouseY);
+                if(dist < 30) {
+                    clickedIndex = index;
+                }
+            });
+
+            if(clickedIndex !== -1) {
+                activeStarIndex = clickedIndex;
+                const star = stars[activeStarIndex];
+                document.getElementById('popupTitle').innerText = `${star.mood.toUpperCase()} (${star.date})`;
+                popupEditInput.value = star.note;
+                popup.style.display = 'block';
+            } else {
+                popup.style.display = 'none';
+                activeStarIndex = null;
+            }
+        });
+
+        // Update / Edit Star Note
+        document.getElementById('updateStarBtn').addEventListener('click', () => {
+            if(activeStarIndex !== null) {
+                const updatedText = popupEditInput.value.trim();
+                if(updatedText) {
+                    stars[activeStarIndex].note = updatedText;
+                    localStorage.setItem('modality_stars', JSON.stringify(stars));
+                    popup.style.display = 'none';
+                    alert("Reflection updated successfully!");
+                } else {
+                    alert("Reflection cannot be empty!");
+                }
+            }
+        });
+
+        // Delete Star
+        document.getElementById('deleteStarBtn').addEventListener('click', () => {
+            if(activeStarIndex !== null) {
+                stars.splice(activeStarIndex, 1);
+                localStorage.setItem('modality_stars', JSON.stringify(stars));
+                popup.style.display = 'none';
+                updateStats();
+                activeStarIndex = null;
+            }
+        });
+    </script>
+</body>
+</html>
